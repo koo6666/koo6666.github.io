@@ -1,0 +1,235 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Koo&#39;s Blog</title>
+
+  
+  <meta name="author" content="GuJiXian">
+  
+
+  
+  <meta name="description" content="一个做游戏的技术博客">
+  
+
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  
+
+  <meta property="og:site_name" content="Koo&#39;s Blog"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Koo&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">Koo&#39;s Blog</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">主页</a></li>
+      
+        <li><a href="/archives">归档</a></li>
+      
+        <li><a href="/categories">分类</a></li>
+      
+        <li><a href="/tags">标签</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    
+  <article>
+
+  
+    
+    <h3 class="article-title"><a href="/2024/06/03/在没有文档的情况下如何跟踪流程——以HeavenMS为例/"><span>在没有文档的情况下如何跟踪流程——以HeavenMS为例</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2024/06/03/在没有文档的情况下如何跟踪流程——以HeavenMS为例/" rel="bookmark">
+        <time class="entry-date published" datetime="2024-06-02T19:42:31.000Z">
+          2024-06-03
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在我们拿到一个项目的代码之后，我们该如何去快速地摸清它某些特性或它整体的脉络呢？<br>我们应该从用例（use case）开始入手，从宏观的角度出发，找出一个具有代表性的用例，然后跟踪它的执行过程，梳理出作者的设计思路和实现的过程。<br>因为最近在玩冒险岛的私服，在怀念童年的时光的同时顺便试着去解释当年玩冒险岛的事的一些趣事——在网络不流畅的时候为什么我能打出秒杀怪物的伤害但是怪物没有死亡，在卡顿过后怪物全死掉了。<br>我在试着通过HeavenMS的代码去尝试解释这个问题，在这一次探索中，我大致的梳理出冒险岛这款游戏的战斗过程实现。</p>
+<h2 id="Use-Case"><a href="#Use-Case" class="headerlink" title="Use Case"></a>Use Case</h2><p>一个最简化的服务端视角的用例：</p>
+<ul>
+<li>用例名称：释放技能攻击怪物</li>
+<li>参与者<ul>
+<li>玩家</li>
+<li>怪物</li>
+<li>游戏系统</li>
+</ul>
+</li>
+<li>前置条件<ul>
+<li>满足技能释放的消耗（current mp &gt;&#x3D; skill consume）</li>
+<li>技能攻击距离大于玩家与怪物距离(skill range &gt;&#x3D; the distance between player and monster)</li>
+</ul>
+</li>
+<li>成功场景<ul>
+<li>客户端执行释放技能请求</li>
+<li>服务端进行技能效果，进行伤害结算</li>
+<li>客户端播放技能动画，显示伤害数字</li>
+</ul>
+</li>
+</ul>
+<h2 id="开始读代码"><a href="#开始读代码" class="headerlink" title="开始读代码"></a>开始读代码</h2><p>通过快速地翻查，我们找到了协议号的枚举类 <code>net.opcodes.RecvOpcode</code>，我试着去猜释放技能的协议号。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">CLOSE_RANGE_ATTACK(<span class="number">0x2C</span>),</span><br><span class="line">RANGED_ATTACK(<span class="number">0x2D</span>),</span><br><span class="line">MAGIC_ATTACK(<span class="number">0x2E</span>),  <span class="comment">// 我选择这个来试着</span></span><br><span class="line">TOUCH_MONSTER_ATTACK(<span class="number">0x2F</span>),</span><br><span class="line">TAKE_DAMAGE(<span class="number">0x30</span>),</span><br><span class="line">GENERAL_CHAT(<span class="number">0x31</span>),</span><br><span class="line">CLOSE_CHALKBOARD(<span class="number">0x32</span>),</span><br><span class="line">FACE_EXPRESSION(<span class="number">0x33</span>),</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>通过IDE我们很快就能定位到它的handler（<code>net.server.channel.handlersMagicDamageHandler</code>），通过游戏的理解我尝试去注释里面的代码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">handlePacket</span><span class="params">(InPacket p, Client c)</span> &#123;</span><br><span class="line">        <span class="type">Character</span> <span class="variable">chr</span> <span class="operator">=</span> c.getPlayer();</span><br><span class="line">        <span class="comment">// 解释客户端请求的包</span></span><br><span class="line">        <span class="type">AttackInfo</span> <span class="variable">attack</span> <span class="operator">=</span> parseDamage(p, chr, <span class="literal">false</span>, <span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 省略</span></span><br><span class="line">  </span><br><span class="line">        <span class="comment">// 判定是否充能技能</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">charge</span> <span class="operator">=</span> (attack.skill == Evan.FIRE_BREATH || attack.skill == Evan.ICE_BREATH || attack.skill == FPArchMage.BIG_BANG || attack.skill == ILArchMage.BIG_BANG || attack.skill == Bishop.BIG_BANG) ? attack.charge : -<span class="number">1</span>;</span><br><span class="line">        <span class="comment">// 构造同屏广播的包</span></span><br><span class="line">        <span class="type">Packet</span> <span class="variable">packet</span> <span class="operator">=</span> PacketCreator.magicAttack(chr, attack.skill, attack.skilllevel, attack.stance, attack.numAttackedAndDamage, attack.allDamage, charge, attack.speed, attack.direction, attack.display);</span><br><span class="line">        <span class="comment">// 这么快就AOI广播？</span></span><br><span class="line">        chr.getMap().broadcastMessage(chr, packet, <span class="literal">false</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="type">StatEffect</span> <span class="variable">effect</span> <span class="operator">=</span> attack.getAttackEffect(chr, <span class="literal">null</span>);</span><br><span class="line">        <span class="type">Skill</span> <span class="variable">skill</span> <span class="operator">=</span> SkillFactory.getSkill(attack.skill);</span><br><span class="line">        <span class="type">StatEffect</span> <span class="variable">effect_</span> <span class="operator">=</span> skill.getEffect(chr.getSkillLevel(skill));</span><br><span class="line">        <span class="keyword">if</span> (effect_.getCooldown() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (chr.skillIsCooling(attack.skill)) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                c.sendPacket(PacketCreator.skillCooldown(attack.skill, effect_.getCooldown()));</span><br><span class="line">                chr.addCooldown(attack.skill, currentServerTime(), SECONDS.toMillis(effect_.getCooldown()));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 执行伤害结算</span></span><br><span class="line">        applyAttack(attack, chr, effect.getAttackCount());</span><br><span class="line">        <span class="comment">// 法师二转的吸蓝技能</span></span><br><span class="line">        <span class="type">Skill</span> <span class="variable">eaterSkill</span> <span class="operator">=</span> SkillFactory.getSkill((chr.getJob().getId() - (chr.getJob().getId() % <span class="number">10</span>)) * <span class="number">10000</span>);<span class="comment">// MP Eater, works with right job</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">eaterLevel</span> <span class="operator">=</span> chr.getSkillLevel(eaterSkill);</span><br><span class="line">        <span class="keyword">if</span> (eaterLevel &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (Integer singleDamage : attack.allDamage.keySet()) &#123;</span><br><span class="line">                eaterSkill.getEffect(eaterLevel).applyPassive(chr, chr.getMap().getMapObject(singleDamage), <span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>为什么解析完客户端发过来的包就立马同屏广播呢？我感觉有猫腻，所以我要去跟踪一下 <code>parseDamage()</code>的执行过程，它是父类 <code>AbstractDealDamageHandler</code>的公共方法。我尝试用自然语言去简化这个函数的执行，原来它的战斗系统是客户端计算伤害结果，然后发给服务器进行伤害结算的。跟我想象中的不一样，那小时候的问题就得到解释了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">protected AttackInfo parseDamage(InPacket p, Character chr, boolean ranged, boolean magic) &#123;</span><br><span class="line">        AttackInfo ret = new AttackInfo();</span><br><span class="line">        // 解析击中个数</span><br><span class="line">        // 解析伤害数量</span><br><span class="line">        // 解析战斗参数</span><br><span class="line">        // 获取skilllevel</span><br><span class="line">        // 判定是否充能技能</span><br><span class="line">        // 解析人物方向</span><br><span class="line">        // 金钱炸弹处理 直接处理返回</span><br><span class="line">        // 弹道技能方向解释</span><br><span class="line">        // 计算角色基础伤害</span><br><span class="line">        // 怪物伤害</span><br><span class="line">        for (int i = 0; i &lt; ret.numAttacked; i++) &#123;</span><br><span class="line">            // 与怪物属性相关的伤害加成</span><br><span class="line">            for (int j = 0; j &lt; ret.numDamage; j++) &#123;</span><br><span class="line">                //会心伤害计算</span><br><span class="line">                //伤害阈值判定 （防作弊）</span><br><span class="line">            &#125;</span><br><span class="line">            // 暴击表现相关</span><br><span class="line">        &#125;</span><br><span class="line">        return ret;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>冒险岛的战斗流程应该就是这样弱同步，客户端先执行技能施放算出伤害，然后把战斗参数发给服务器处理，服务器做伤害阈值校验、伤害结算和同屏广播。</p>
+<p>运气很好，通过协议号一次就猜对了，<code>AbstractDealDamageHandler</code>有5种子类：</p>
+<ul>
+<li><code>CloseRangeDamageHandler</code></li>
+<li><code>MagicDamageHandler</code></li>
+<li><code>RangedAttackHandler</code></li>
+<li><code>SummonDamageHandler</code></li>
+<li><code>TouchMonsterDamageHandler</code></li>
+</ul>
+<p>通过名字我们能大概猜出客户端是根据技能的类型发不同的协议号过来进行战斗结算的。</p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>我们通过一次简单的探索，试着在没有文档的情况下通过简单的用例去阅读代码，梳理业务流程。</p>
+<p>在这个例子中，我们能大概地梳理出了冒险岛的战斗流程是怎么样的。</p>
+<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p><a target="_blank" rel="noopener" href="https://github.com/P0nk/Cosmic" title="Consmic">https://github.com/P0nk/Cosmic</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ronancpl/HeavenMS" title="HeavenMS">https://github.com/ronancpl/HeavenMS</a></p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+      
+
+    <span class="post-categories">
+      <i class="icon-categories"></i>
+        <a href="/categories/游戏开发/">游戏开发</a>, <a href="/categories/游戏开发/后端技术/">后端技术</a>
+    </span>
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/Java/">Java</a><a href="/tags/HeavenMS/">HeavenMS</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
+    <h3 class="article-title"><a href="/2024/06/02/init/"><span>init</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2024/06/02/init/" rel="bookmark">
+        <time class="entry-date published" datetime="2024-06-02T12:46:08.000Z">
+          2024-06-02
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+
+<nav class="pagination">
+  
+  
+</nav>
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2024 GuJiXian
+    
+  </p>
+</footer>
+    
+    
+  </div>
+</div>
+</body>
+</html>

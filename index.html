@@ -65,6 +65,136 @@
 
   
     
+    <h3 class="article-title"><a href="/2024/12/22/谈一下服务端的关卡系统/"><span>谈一下服务端的关卡系统</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2024/12/22/谈一下服务端的关卡系统/" rel="bookmark">
+        <time class="entry-date published" datetime="2024-12-21T18:56:47.000Z">
+          2024-12-22
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>关卡是用来描述阶段性的挑战。关卡的组成通常包含有：达成条件，事件触发，记录点，检查点等。<br>通过两个游戏简单比较经典的玩法并且简单的分析对应的开源模拟实现，探索一下关卡系统有什么共性。</p>
+<h2 id="死亡矿井（魔兽世界）"><a href="#死亡矿井（魔兽世界）" class="headerlink" title="死亡矿井（魔兽世界）"></a>死亡矿井（魔兽世界）</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">开始</span><br><span class="line">-&gt; 进入死亡矿井</span><br><span class="line">  -&gt; 击败门口的守卫</span><br><span class="line">  -&gt; 清理矿井入口区域</span><br><span class="line">  -&gt; 击败矿工头目</span><br><span class="line">  -&gt; 进入矿工区</span><br><span class="line">  -&gt; 击败工头斯尼德</span><br><span class="line">  -&gt; 清理矿工区</span><br><span class="line">  -&gt; 进入地精铸造厂</span><br><span class="line">  -&gt; 击败地精工程师</span><br><span class="line">  -&gt; 找到迪菲亚火药桶</span><br><span class="line">  -&gt; 拾取迪菲亚火药</span><br><span class="line">  -&gt; 击败因拾取火药而召唤的精英敌人</span><br><span class="line">  -&gt; 使用迪菲亚火药点燃迪菲亚火炮</span><br><span class="line">  -&gt; 火炮爆炸，打开通往铁甲湾的门</span><br><span class="line">  -&gt; 进入铁甲湾</span><br><span class="line">  -&gt; 击败铁甲湾的守卫</span><br><span class="line">  -&gt; 击败船长</span><br><span class="line">  -&gt; 进入范克里夫的藏身处</span><br><span class="line">  -&gt; 击败范克里夫的保镖</span><br><span class="line">  -&gt; 击败艾德温·范克里夫</span><br><span class="line">  -&gt; 结束</span><br></pre></td></tr></table></figure>
+
+<p>几个玩家视角感受到的特殊机制：</p>
+<ul>
+<li><strong>场景机制</strong> 需要玩家打开门进入港口，通过拾取火药开炮炸开或者盗贼开锁。</li>
+<li><strong>Boss机制</strong> 重拳先生（BOSS）根据血量分为三个阶段，不同阶段有不同的装备数值，阶段切换时候会释放眩晕和主动走去储物箱切换装备。</li>
+<li><strong>巡逻怪机制</strong> 定时刷新一批精英怪在地图中间位置巡逻增加玩家跑尸难度。</li>
+</ul>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p>我以玩家的视角再加上wowhead的资料粗略地拆解了一下：</p>
+<img src="/2024/12/22/%E8%B0%88%E4%B8%80%E4%B8%8B%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9A%84%E5%85%B3%E5%8D%A1%E7%B3%BB%E7%BB%9F/deadmines.svg" class="" title="拆解deadmines">
+
+<p>因为vmangos的项目比较整洁，我们还是很容易定位到玩法相关的文件：</p>
+<ul>
+<li>src\scripts\eastern_kingdoms\westfall\deadmines\boss_mr_smite.cpp &#x2F;&#x2F;Boss重拳先生的AI实现</li>
+<li>src\scripts\eastern_kingdoms\westfall\deadmines\deadmines.cpp &#x2F;&#x2F;副本场景机制实现</li>
+<li>src\scripts\eastern_kingdoms\westfall\deadmines\deadmines.h &#x2F;&#x2F;副本常量</li>
+<li>src\scripts\eastern_kingdoms\westfall\deadmines\instance_deadmines.cpp  &#x2F;&#x2F;副本实现（场景数据，生命周期，副本机制串联，副本任务实现）</li>
+</ul>
+<h2 id="玩具塔101组队任务（冒险岛）"><a href="#玩具塔101组队任务（冒险岛）" class="headerlink" title="玩具塔101组队任务（冒险岛）"></a>玩具塔101组队任务（冒险岛）</h2><ul>
+<li><p><strong>组队与准备</strong><br>需要6人组队，至少包含一名法师和一名飞侠（或弓手），建议有牧师。</p>
+</li>
+<li><p><strong>任务阶段</strong>  </p>
+<ol>
+<li>收集25枚通行证，击败发条鼠。</li>
+<li>打开箱子收集11张通行证。</li>
+<li>打箱子获得通行证，击败刷出的怪物。</li>
+<li>黑暗地图中击败怪物获得6张通行证。</li>
+<li>收集通行证，<strong>使用法师“快速移动”和飞侠隐身技能</strong>。</li>
+<li>通过箱子编号进入15层，按↑键。</li>
+<li>打碎箱子获得通行证，击败3只怪物。</li>
+<li>5人站上正确的箱子编号。</li>
+<li>击败BOSS获得钥匙。</li>
+</ol>
+</li>
+<li><p><strong>完成阶段</strong><br>如果时间剩余，进入Bonus Map获取物品，与NPC对话获得奖品。</p>
+</li>
+</ul>
+<h3 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h3><p>我也同样地拆解了一下：</p>
+<img src="/2024/12/22/%E8%B0%88%E4%B8%80%E4%B8%8B%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9A%84%E5%85%B3%E5%8D%A1%E7%B3%BB%E7%BB%9F/101.svg" class="" title="拆解101">
+
+<p>翻一下Consmic项目，定位到玩法相关的文件：</p>
+<ul>
+<li>scripts\event\LudiPQ.js 玩法规则实现</li>
+<li>scripts\npc\2040036.js NPC脚本</li>
+<li>…</li>
+<li>scripts\npc\2040044.js</li>
+<li>scripts\npc\2040045.js</li>
+<li>scripts\portal\lpq0.js 地图跳转点</li>
+<li>…</li>
+<li>scripts\portal\lpq7.js</li>
+</ul>
+<p>我用两个比较典型的关卡来说明：</p>
+<h4 id="阶段6"><a href="#阶段6" class="headerlink" title="阶段6"></a>阶段6</h4><p>小时候我们玩的时候熟悉背诵暗号“133 221 333 123 111”。这是一个纯粹的地图机制，但是我们可以稍微窥探一下这个玩法框架里面脚本引擎想怎么实现这样的机制。  </p>
+<p>npc脚本其实就是单纯地告诉玩家，，这张地图该干嘛：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">start</span>(<span class="params"></span>) &#123;</span><br><span class="line">    cm.<span class="title function_">sendOk</span>(<span class="string">&quot;Try to find the right combination of numbers to reach the top.&quot;</span>);</span><br><span class="line">    cm.<span class="title function_">dispose</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从第五阶段到第六阶段的传送点是特殊做的，因为需要指定到最低层的箱子：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">enter</span>(<span class="params">pi</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> eim = pi.<span class="title function_">getPlayer</span>().<span class="title function_">getEventInstance</span>();</span><br><span class="line">    <span class="keyword">var</span> target = eim.<span class="title function_">getMapInstance</span>(<span class="number">922010800</span>);</span><br><span class="line">    <span class="keyword">if</span> (eim.<span class="title function_">getProperty</span>(<span class="string">&quot;7stageclear&quot;</span>) != <span class="literal">null</span>) &#123;</span><br><span class="line">        pi.<span class="title function_">playPortalSound</span>();</span><br><span class="line">        pi.<span class="title function_">getPlayer</span>().<span class="title function_">changeMap</span>(target, target.<span class="title function_">getPortal</span>(<span class="string">&quot;st00&quot;</span>));</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当玩家从地图阶段跳到第六阶段就是纯粹地根据地图配置的传送点（箱子）到地图顶部，然后通过传送门到第七阶段。</p>
+<h4 id="阶段8"><a href="#阶段8" class="headerlink" title="阶段8"></a>阶段8</h4><p>这个阶段其实就是玩家站箱子猜生成九选五的组合。  </p>
+<p>我简单地描述一下这个npc逻辑。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(leader)&#123;</span><br><span class="line">  <span class="keyword">if</span>(<span class="title function_">check_party_player_count_at_map</span>() &gt;= <span class="number">5</span>)&#123;</span><br><span class="line">    <span class="keyword">if</span>(!<span class="title function_">is_answer_generated</span>())&#123;</span><br><span class="line">      <span class="title function_">generate_answer</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(<span class="title function_">get_player_result</span>() == answer)&#123;</span><br><span class="line">      <span class="title function_">next_stage</span>()</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">      <span class="comment">//</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>其实从上面两个玩法的实现来看，我们不难发现其实关卡系统其实是一个“大杂烩”。里面会涉及到场景、组队、任务、战斗和AI等等。<br>我们也不难发现一些共性关卡系统的共性，我们可以提供切面为具体的玩法服务，也可以引入脚本引擎提高开发效率（参考Cosmic）。<br>在实践中最基本的一个要求，尽量做成“热插拔”，尽可能不对外提供依赖。</p>
+<h2 id="相关项目"><a href="#相关项目" class="headerlink" title="相关项目"></a>相关项目</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/vmangos/core" title="vmangos">【vmangos】https://github.com/vmangos/core</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/P0nk/Cosmic" title="Consmic">【Cosmic】https://github.com/P0nk/Cosmic</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.wowhead.com/" title="wowhead">【wowhead】https://www.wowhead.com</a></li>
+</ul>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+      
+
+    <span class="post-categories">
+      <i class="icon-categories"></i>
+        <a href="/categories/游戏开发/">游戏开发</a>, <a href="/categories/游戏开发/后端技术/">后端技术</a>
+    </span>
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/GamePlay/">GamePlay</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
     <h3 class="article-title"><a href="/2024/06/03/在没有文档的情况下如何跟踪流程——以HeavenMS为例/"><span>在没有文档的情况下如何跟踪流程——以HeavenMS为例</span></a></h3>
     
   
@@ -128,8 +258,10 @@
 <p>通过名字我们能大概猜出客户端是根据技能的类型发不同的协议号过来进行战斗结算的。</p>
 <h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>我们通过一次简单的探索，试着在没有文档的情况下通过简单的用例去阅读代码，梳理业务流程。</p>
 <p>在这个例子中，我们能大概地梳理出了冒险岛的战斗流程是怎么样的。</p>
-<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p><a target="_blank" rel="noopener" href="https://github.com/P0nk/Cosmic" title="Consmic">【Cosmic】https://github.com/P0nk/Cosmic</a></p>
-<p><a target="_blank" rel="noopener" href="https://github.com/ronancpl/HeavenMS" title="HeavenMS">【HeavenMS】https://github.com/ronancpl/HeavenMS</a></p>
+<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/P0nk/Cosmic" title="Consmic">【Cosmic】https://github.com/P0nk/Cosmic</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ronancpl/HeavenMS" title="HeavenMS">【HeavenMS】https://github.com/ronancpl/HeavenMS</a></li>
+</ul>
 
       
     </div>

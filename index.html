@@ -30,7 +30,11 @@
   <link href="/favicon.ico" rel="icon">
   <link rel="alternate" href="/atom.xml" title="Koo&#39;s Blog" type="application/atom+xml">
   <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
-<meta name="generator" content="Hexo 7.3.0"></head>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
 
 
 <body>
@@ -65,13 +69,224 @@
 
   
     
-    <h3 class="article-title"><a href="/2024/12/22/谈一下服务端的关卡系统/"><span>谈一下服务端的关卡系统</span></a></h3>
+    <h3 class="article-title"><a href="/2025/04/02/dify初探/"><span>dify初探</span></a></h3>
     
   
 
   <div class="article-top-meta">
     <span class="posted-on">
-      <a href="/2024/12/22/谈一下服务端的关卡系统/" rel="bookmark">
+      <a href="/2025/04/02/dify初探/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-04-02T12:43:29.000Z">
+          2025-04-02
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在Github上吃了瓜，既然来都来了，不得搭一个看看，简单地看一下这个应用框架，再随便翻一下代码，看看部分实现到底是啥样的。</p>
+<h2 id="关于dify"><a href="#关于dify" class="headerlink" title="关于dify"></a>关于dify</h2><p>dify是什么？我们看一下它的官方介绍：</p>
+<blockquote><p>Dify is an open-source LLM app development platform. Its intuitive interface combines agentic AI workflow, RAG pipeline, agent capabilities, model management, observability features and more, letting you quickly go from prototype to production.</p>
+<footer><strong>Dify ——</strong><cite><a target="_blank" rel="noopener" href="https://github.com/langgenius/dify">github.com/langgenius/dify</a></cite></footer></blockquote>
+
+<p><strong>它本质上可以看成就是一个函数 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.566ex;" xmlns="http://www.w3.org/2000/svg" width="8.424ex" height="2.262ex" role="img" focusable="false" viewBox="0 -750 3723.6 1000" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-1-TEX-I-1D453" d="M118 -162Q120 -162 124 -164T135 -167T147 -168Q160 -168 171 -155T187 -126Q197 -99 221 27T267 267T289 382V385H242Q195 385 192 387Q188 390 188 397L195 425Q197 430 203 430T250 431Q298 431 298 432Q298 434 307 482T319 540Q356 705 465 705Q502 703 526 683T550 630Q550 594 529 578T487 561Q443 561 443 603Q443 622 454 636T478 657L487 662Q471 668 457 668Q445 668 434 658T419 630Q412 601 403 552T387 469T380 433Q380 431 435 431Q480 431 487 430T498 424Q499 420 496 407T491 391Q489 386 482 386T428 385H372L349 263Q301 15 282 -47Q255 -132 212 -173Q175 -205 139 -205Q107 -205 81 -186T55 -132Q55 -95 76 -78T118 -61Q162 -61 162 -103Q162 -122 151 -136T127 -157L118 -162Z"></path><path id="MJX-1-TEX-N-28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path><path id="MJX-1-TEX-I-1D465" d="M52 289Q59 331 106 386T222 442Q257 442 286 424T329 379Q371 442 430 442Q467 442 494 420T522 361Q522 332 508 314T481 292T458 288Q439 288 427 299T415 328Q415 374 465 391Q454 404 425 404Q412 404 406 402Q368 386 350 336Q290 115 290 78Q290 50 306 38T341 26Q378 26 414 59T463 140Q466 150 469 151T485 153H489Q504 153 504 145Q504 144 502 134Q486 77 440 33T333 -11Q263 -11 227 52Q186 -10 133 -10H127Q78 -10 57 16T35 71Q35 103 54 123T99 143Q142 143 142 101Q142 81 130 66T107 46T94 41L91 40Q91 39 97 36T113 29T132 26Q168 26 194 71Q203 87 217 139T245 247T261 313Q266 340 266 352Q266 380 251 392T217 404Q177 404 142 372T93 290Q91 281 88 280T72 278H58Q52 284 52 289Z"></path><path id="MJX-1-TEX-N-29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path><path id="MJX-1-TEX-N-3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path><path id="MJX-1-TEX-I-1D466" d="M21 287Q21 301 36 335T84 406T158 442Q199 442 224 419T250 355Q248 336 247 334Q247 331 231 288T198 191T182 105Q182 62 196 45T238 27Q261 27 281 38T312 61T339 94Q339 95 344 114T358 173T377 247Q415 397 419 404Q432 431 462 431Q475 431 483 424T494 412T496 403Q496 390 447 193T391 -23Q363 -106 294 -155T156 -205Q111 -205 77 -183T43 -117Q43 -95 50 -80T69 -58T89 -48T106 -45Q150 -45 150 -87Q150 -107 138 -122T115 -142T102 -147L99 -148Q101 -153 118 -160T152 -167H160Q177 -167 186 -165Q219 -156 247 -127T290 -65T313 -9T321 21L315 17Q309 13 296 6T270 -6Q250 -11 231 -11Q185 -11 150 11T104 82Q103 89 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="1D453" xlink:href="#MJX-1-TEX-I-1D453"></use></g><g data-mml-node="mo" transform="translate(550,0)"><use data-c="28" xlink:href="#MJX-1-TEX-N-28"></use></g><g data-mml-node="mi" transform="translate(939,0)"><use data-c="1D465" xlink:href="#MJX-1-TEX-I-1D465"></use></g><g data-mml-node="mo" transform="translate(1511,0)"><use data-c="29" xlink:href="#MJX-1-TEX-N-29"></use></g><g data-mml-node="mo" transform="translate(2177.8,0)"><use data-c="3D" xlink:href="#MJX-1-TEX-N-3D"></use></g><g data-mml-node="mi" transform="translate(3233.6,0)"><use data-c="1D466" xlink:href="#MJX-1-TEX-I-1D466"></use></g></g></g></svg></mjx-container>，x 是用户输入的字符串，y 是 x 通过 dify 转换后输出的字符串。</strong>宏观地看，它可以可视化地编辑workflow，同时也集成了很多大模型，也有对应的 插件&#x2F;应用 商店。</p>
+<h3 id="横向对比"><a href="#横向对比" class="headerlink" title="横向对比"></a>横向对比</h3><table>
+<thead>
+<tr>
+<th align="left">Feature</th>
+<th align="center">Dify.AI</th>
+<th align="center">LangChain</th>
+<th align="center">Flowise</th>
+<th align="center">OpenAI Assistants API</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Programming Approach</td>
+<td align="center">API + App-oriented</td>
+<td align="center">Python Code</td>
+<td align="center">App-oriented</td>
+<td align="center">API-oriented</td>
+</tr>
+<tr>
+<td align="left">Supported LLMs</td>
+<td align="center">Rich Variety</td>
+<td align="center">Rich Variety</td>
+<td align="center">Rich Variety</td>
+<td align="center">OpenAI-only</td>
+</tr>
+<tr>
+<td align="left">RAG Engine</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td align="left">Agent</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td align="left">Workflow</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="left">Observability</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="left">Enterprise Feature (SSO&#x2F;Access control)</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="left">Local Deployment</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+</tr>
+</tbody></table>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>本地用docker部署的话，其实我们可以直接用官方的文档，然后按需修改 .env 文件，然后运行。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> dify</span><br><span class="line"><span class="built_in">cd</span> docker</span><br><span class="line"><span class="built_in">cp</span> .env.example .<span class="built_in">env</span></span><br><span class="line">docker compose up -d</span><br></pre></td></tr></table></figure>
+
+<p>我选择在本地跑ollama,显卡是移动端的4060，所以我会用以下三个LLM模型来做demo：</p>
+<ul>
+<li><strong>deepseek-r1:7b</strong></li>
+<li><strong>deepseek-r1:14b</strong></li>
+<li><strong>qwen2.5:7b</strong></li>
+</ul>
+<p>Embedding模型则用<strong>nomic-embed-text</strong>。</p>
+<p>最后的设置大概如下：</p>
+<img src="/2025/04/02/dify%E5%88%9D%E6%8E%A2/%E6%A8%A1%E5%9E%8B%E5%88%97%E8%A1%A8.jpg" class="" title="模型列表">
+
+<h2 id="第一个demo"><a href="#第一个demo" class="headerlink" title="第一个demo"></a>第一个demo</h2><p>由于最近摄入翡翠珠宝相关知识比较多，我以做一个翡翠珠宝智能客服工作流demo作为例子，只简单地展现dify的<strong>工作流</strong>是如何使用的和开发时有什么细节。</p>
+<p>对应消息分类和后续处理如下：</p>
+<ul>
+<li>售后 -&gt; 找人工</li>
+<li>产品介绍 -&gt; 找到具体的产品提取信息介绍</li>
+<li>产品导购 -&gt; 根据需求和预算介绍</li>
+<li>打招呼 -&gt; 友好地自动回复</li>
+<li>其他 -&gt; 友好地自动回复</li>
+</ul>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><img src="/2025/04/02/dify%E5%88%9D%E6%8E%A2/%E5%B7%A5%E4%BD%9C%E6%B5%81.jpg" class="" title="工作流">
+<p>（我简单地用kimi去整理一些翡翠相关的<a href="/2025/04/02/dify%E5%88%9D%E6%8E%A2/wiki.7z" title="[文档]">[文档]</a>，后续的问题都会与文档相关。）</p>
+<h3 id="当前场景的模型对比"><a href="#当前场景的模型对比" class="headerlink" title="当前场景的模型对比"></a>当前场景的模型对比</h3><p>至于demo最后为什么用qwen2.5:7b而不是用deepseek-r1蒸馏后的模型，我用一张图来对比。<br>（其实并没什么意义，主要是调起来更快，毕竟不是上生产环境。）</p>
+<img src="/2025/04/02/dify%E5%88%9D%E6%8E%A2/%E5%88%86%E7%B1%BB%E5%99%A8%E6%A8%A1%E5%9E%8B%E5%AF%B9%E6%AF%94.png" class="" title="分类器模型对比">
+
+<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><img src="/2025/04/02/dify%E5%88%9D%E6%8E%A2/q1.png" class="" title="q1">
+<img src="/2025/04/02/dify%E5%88%9D%E6%8E%A2/q2.png" class="" title="q2">
+<img src="/2025/04/02/dify%E5%88%9D%E6%8E%A2/q3.png" class="" title="q3">
+<img src="/2025/04/02/dify%E5%88%9D%E6%8E%A2/q4.png" class="" title="q4">
+<img src="/2025/04/02/dify%E5%88%9D%E6%8E%A2/q5.png" class="" title="q5">
+
+<h2 id="看看dify的实现"><a href="#看看dify的实现" class="headerlink" title="看看dify的实现"></a>看看dify的实现</h2><h3 id="问题分类器"><a href="#问题分类器" class="headerlink" title="问题分类器"></a>问题分类器</h3><p>在上面的比较图，我们可以很直观地看出来这个<strong>问题分类器</strong>的<strong>prompt</strong>是怎样的，数据的处理流程也能每一步追踪得到。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&quot;### Job Description&quot;: &quot;You are a text classification engine that analyzes text data and assigns categories based on user input or automatically determined categories.&quot;,</span><br><span class="line">&quot;### Task&quot;: &quot;Your task is to assign one categories ONLY to the input text and only one category may be assigned returned in the output. Additionally, you need to extract the key words from the text that are related to the classification.&quot;,</span><br><span class="line">&quot;### Format&quot;: &quot;The input text is in the variable input_text. Categories are specified as a category list with two filed category_id and category_name in the variable categories. Classification instructions may be included to improve the classification accuracy.&quot;,</span><br><span class="line">&quot;### Constraint&quot;: &quot;DO NOT include anything other than the JSON array in your response.&quot;,</span><br><span class="line">&quot;### Memory&quot;: &quot;Here are the chat histories between human and assistant, inside &lt;histories&gt;&lt;/histories&gt; XML tags.\n&lt;histories&gt;\n\n&lt;/histories&gt;&quot;</span><br></pre></td></tr></table></figure>
+
+<p>其实根据文档和这个prompt，在demo上我写了对应的<strong>classification</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">1. **翡翠玉器售后服务**</span><br><span class="line">   - 定义：涉及翡翠玉器的清洗、保养、维修、鉴定、退换货、以旧换新、改圈等售后服务内容。</span><br><span class="line">   - 关键词：清洗、保养、翻新、维修、鉴定、退换货、以旧换新、改圈、掉钻、断裂、修复、证书、票据等。</span><br><span class="line"></span><br><span class="line">2. **翡翠玉器产品咨询**</span><br><span class="line">   - 定义：用户对翡翠玉器的材质、工艺、款式、价格等方面进行询问和了解。</span><br><span class="line">   - 关键词：材质、工艺、款式、价格、A货、B货、C货、冰种、糯种、玻璃种、颜色、雕刻、镶嵌等。</span><br><span class="line"></span><br><span class="line">3. **翡翠玉器产品导购**</span><br><span class="line">   - 定义：帮助用户根据需求和偏好选择合适的翡翠玉器产品。</span><br><span class="line">   - 关键词：推荐、选择、预算、风格、用途、送礼、投资、搭配、款式、颜色、大小等。</span><br><span class="line"></span><br><span class="line">4. **打招呼**</span><br><span class="line">   - 定义：用户或系统通过问候语、寒暄、表达友好等方式开始对话。</span><br><span class="line">   - 关键词：你好、早上好、晚上好、很高兴见到你、请多关照、最近好吗、过得怎么样等。</span><br><span class="line"></span><br><span class="line">5. **其他**</span><br><span class="line">   - 定义：不符合上述任何一类的对话内容。</span><br><span class="line">   - 关键词：与翡翠玉器无关的话题，如个人生活、工作、兴趣爱好等。</span><br></pre></td></tr></table></figure>
+
+<h4 id="前端实现"><a href="#前端实现" class="headerlink" title="前端实现"></a>前端实现</h4><p><strong>workflow</strong> 的 <strong>节点（node）</strong> 前端大致是为了meta data服务，它是一个基于reactflow封装的组件。简单的定位到它的目录：</p>
+<ul>
+<li><code>web\app\components\workflow\nodes\question-classifier</code><ul>
+<li><code>components</code><ul>
+<li><code>advanced-setting.tsx</code></li>
+<li><code>class-item.tsx</code></li>
+<li><code>class-list.tsx</code></li>
+</ul>
+</li>
+<li><code>default.ts</code></li>
+<li><code>node.tsx</code></li>
+<li><code>panel.tsx</code></li>
+<li><code>types.ts</code></li>
+<li><code>use-config.ts</code></li>
+<li><code>utils.ts</code></li>
+</ul>
+</li>
+</ul>
+<p>这个节点具体要配置些什么，我们可以从<code>types.ts</code>里大致看出来：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">type</span> <span class="title class_">QuestionClassifierNodeType</span> = <span class="title class_">CommonNodeType</span> &amp; &#123;</span><br><span class="line">  <span class="attr">query_variable_selector</span>: <span class="title class_">ValueSelector</span></span><br><span class="line">  <span class="attr">model</span>: <span class="title class_">ModelConfig</span></span><br><span class="line">  <span class="attr">classes</span>: <span class="title class_">Topic</span>[]          <span class="comment">// 分类</span></span><br><span class="line">  <span class="attr">instruction</span>: <span class="built_in">string</span>       <span class="comment">// classification</span></span><br><span class="line">  memory?: <span class="title class_">Memory</span></span><br><span class="line">  <span class="attr">vision</span>: &#123;</span><br><span class="line">    <span class="attr">enabled</span>: <span class="built_in">boolean</span></span><br><span class="line">    configs?: <span class="title class_">VisionSetting</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>节点间的连接封装在基础组件上面，在这里就不展开了。</p>
+<h4 id="后端实现"><a href="#后端实现" class="headerlink" title="后端实现"></a>后端实现</h4><p>同样的，我们先把组件的代码定位到：</p>
+<ul>
+<li><code>api\core\workflow\nodes\question_classifier</code><ul>
+<li><code>__init__.py</code></li>
+<li><code>entities.py</code></li>
+<li><code>exc.py</code></li>
+<li><code>question_classifier_node.py</code></li>
+<li><code>template_prompts.py</code></li>
+</ul>
+</li>
+</ul>
+<p><code>QuestionClassifierNode</code> 按需实现了 <code>BaseNode</code> 的抽象方法，节点的执行实现是 <code>_run()</code> ，它的大致的执行流程：</p>
+<ol>
+<li>提取上下文变量</li>
+<li>获取模型配置</li>
+<li>获取内存的缓存数据（histories）</li>
+<li>获取用户配置的classification然后组装</li>
+<li>计算剩余token</li>
+<li>获取prompt template然后通过上下文信息组装</li>
+<li>调用LLM模型</li>
+<li>处理结果</li>
+</ol>
+<p>我们可以这个执行流程大致知道 <strong>workflow</strong> 的 <strong>节点（node）</strong> 是如何执行的。</p>
+<p>至于对整个 <strong>workflow</strong>,我们直接看它的入口 <code>WorkflowAppRunner</code>。<br>它组装上下文和通过db获取节点的配置信息组装成整个 <code>WorkflowEntry</code>，然后 <code>GraphEngine</code> 根据配置的节点结构按顺序执行，节点执行时会生成运行时的事件让 <code>WorkflowEntry</code> 处理(可视化执行流程)。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们简单地了解怎么使用 <strong>dify</strong> 的 <strong>workflow</strong>，通过一个 <strong>use case</strong> 去了解组件 <strong>节点（node）</strong> 是如何运行的，顺道也看到开发者是如何实现可视化执行流程的。<br>如果要对它进行二次开发，我们可以先自下而上然后再自上而下去粗略地了解这个框架，然后再做进一步地设计、实现。</p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/RAG/">RAG</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
+    <h3 class="article-title"><a href="/2024/12/22/找些现成例子谈一下服务端的关卡系统/"><span>找些现成例子谈一下服务端的关卡系统</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2024/12/22/找些现成例子谈一下服务端的关卡系统/" rel="bookmark">
         <time class="entry-date published" datetime="2024-12-21T18:56:47.000Z">
           2024-12-22
         </time>
@@ -95,7 +310,7 @@
 <li><strong>巡逻怪机制</strong> 定时刷新一批精英怪在地图中间位置巡逻增加玩家跑尸难度。</li>
 </ul>
 <h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p>我以玩家的视角再加上wowhead的资料粗略地拆解了一下：</p>
-<img src="/2024/12/22/%E8%B0%88%E4%B8%80%E4%B8%8B%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9A%84%E5%85%B3%E5%8D%A1%E7%B3%BB%E7%BB%9F/deadmines.svg" class="" title="拆解deadmines">
+<img src="/2024/12/22/%E6%89%BE%E4%BA%9B%E7%8E%B0%E6%88%90%E4%BE%8B%E5%AD%90%E8%B0%88%E4%B8%80%E4%B8%8B%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9A%84%E5%85%B3%E5%8D%A1%E7%B3%BB%E7%BB%9F/deadmines.svg" class="" title="拆解deadmines">
 
 <p>因为vmangos的项目比较整洁，我们还是很容易定位到玩法相关的文件：</p>
 <ul>
@@ -124,7 +339,7 @@
 </li>
 </ul>
 <h3 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h3><p>我也同样地拆解了一下：</p>
-<img src="/2024/12/22/%E8%B0%88%E4%B8%80%E4%B8%8B%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9A%84%E5%85%B3%E5%8D%A1%E7%B3%BB%E7%BB%9F/101.svg" class="" title="拆解101">
+<img src="/2024/12/22/%E6%89%BE%E4%BA%9B%E7%8E%B0%E6%88%90%E4%BE%8B%E5%AD%90%E8%B0%88%E4%B8%80%E4%B8%8B%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9A%84%E5%85%B3%E5%8D%A1%E7%B3%BB%E7%BB%9F/101.svg" class="" title="拆解101">
 
 <p>翻一下Consmic项目，定位到玩法相关的文件：</p>
 <ul>
@@ -237,7 +452,7 @@
 </ul>
 </li>
 </ul>
-<h2 id="开始读代码"><a href="#开始读代码" class="headerlink" title="开始读代码"></a>开始读代码</h2><p>通过快速地翻查，我们找到了协议号的枚举类 <code>net.opcodes.RecvOpcode</code>，我试着去猜释放技能的协议号。</p>
+<h2 id="开始看代码"><a href="#开始看代码" class="headerlink" title="开始看代码"></a>开始看代码</h2><p>通过快速地翻查，我们找到了协议号的枚举类 <code>net.opcodes.RecvOpcode</code>，我试着去猜释放技能的协议号。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">CLOSE_RANGE_ATTACK(<span class="number">0x2C</span>),</span><br><span class="line">RANGED_ATTACK(<span class="number">0x2D</span>),</span><br><span class="line">MAGIC_ATTACK(<span class="number">0x2E</span>),  <span class="comment">// 我选择这个来试着</span></span><br><span class="line">TOUCH_MONSTER_ATTACK(<span class="number">0x2F</span>),</span><br><span class="line">TAKE_DAMAGE(<span class="number">0x30</span>),</span><br><span class="line">GENERAL_CHAT(<span class="number">0x31</span>),</span><br><span class="line">CLOSE_CHALKBOARD(<span class="number">0x32</span>),</span><br><span class="line">FACE_EXPRESSION(<span class="number">0x33</span>),</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 
 <p>通过IDE我们很快就能定位到它的handler（<code>net.server.channel.handlersMagicDamageHandler</code>），通过游戏的理解我尝试去注释里面的代码。</p>
@@ -355,7 +570,7 @@
     Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
     </br>
     
-    &copy; 2024 GuJiXian
+    &copy; 2025 GuJiXian
     
   </p>
 </footer>

@@ -69,6 +69,104 @@
 
   
     
+    <h3 class="article-title"><a href="/2025/05/01/谈如何实现功能/"><span>谈如何实现功能</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2025/05/01/谈如何实现功能/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-04-30T18:50:51.000Z">
+          2025-05-01
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>如果将交付一个功能比喻成一场足球比赛，你愿意把球踢进去吗？或者带着队伍把球踢进去？</p>
+<h2 id="在团队配合中增加润滑剂"><a href="#在团队配合中增加润滑剂" class="headerlink" title="在团队配合中增加润滑剂"></a>在团队配合中增加润滑剂</h2><p>在团队协作中，实现一个功能好像就是单纯的 <code>预估工期——制作——验收</code>。粗略地想它好像确实也就那回事，但是我们能不能让这个流程走得更高效呢？我尝试再细化里面的每一项，尝试从微观的角度来探讨这个过程。</p>
+<h3 id="拆分任务"><a href="#拆分任务" class="headerlink" title="拆分任务"></a>拆分任务</h3><p>我们需要关注的是<strong>粒度</strong>问题，将任务拆分成可交付给测试的多个子任务，如果子任务间有依赖，我们再以优先级的方式去对任务进行实现排序。<br>通常对于开发来说，任务拆分越细对工期的预估就会越准。我们可以将任务拆分得很细，譬如把一个UI的<code>info/update/upgrade</code>操作每一个都拆分成一个子任务，但是这个拆分对于整个团队来说是<strong>无意义</strong>的。因为在其他职能的同学看来，这些操作就是一个整体，不需要太过关注这些细节。像上面的例子，我们可以将这个UI的操作作为一个整体成为一个任务。  </p>
+<p>一些常见的粒度拆分：</p>
+<ul>
+<li>UI</li>
+<li>玩法开启&#x2F;关闭</li>
+<li>玩法进入&#x2F;结算（退出）</li>
+<li>算法</li>
+<li>玩法的赛季部分</li>
+<li>玩法的跨服部分</li>
+</ul>
+<p>将一个功能拆分成这种粒度的功能块后，其实我们可以将交付周期变得更短，不同职能间的互动更加频繁，这样虽然会更“敏捷”，但是会更考验团队的沟通和协作能力。</p>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><blockquote>
+<p>不要总想着以后重构，写的时候就要把它写好。</p>
+</blockquote>
+<p>我大概地想了一下，有关注如下方面：</p>
+<ul>
+<li>SOLID</li>
+<li>可观察性</li>
+<li>可测性</li>
+<li>程序日志（调试，业务运行）</li>
+<li>业务日志</li>
+<li>多观察业务上的<strong>谓语</strong></li>
+</ul>
+<p>在这里更多的各扫门前雪，自己做好自己职能方面的工作。朴素地讲，想为团队增加润滑剂的大前提是先做好自己本职的工作，没有余力是做不了的。</p>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><p>这里的测试对应的是上文中的可测性。<br>我们的交付对象有两个：<strong>策划</strong>和<strong>测试</strong>。通常的情况是他们对测试的理解大多都是<strong>集成测试</strong>&#x2F;<strong>黑盒测试</strong>。  </p>
+<h4 id="黑盒测试"><a href="#黑盒测试" class="headerlink" title="黑盒测试"></a>黑盒测试</h4><p>黑盒测试主要是把整个功能当作一个黑盒，测试人员不需要了解内部结构和实现细节，只关注输入和输出是否符合预期。这种方式能从用户的角度验证功能的正确性和完整性，但可能无法覆盖到一些隐藏的逻辑漏洞。<br>在这里，我们更需要关注的是业务上的知识域同步，也就是统一具体业务下的“语言”，因为在这个环节下沟通的占比相对较大。  </p>
+<p>在技术上我们可以做些什么推动呢？</p>
+<ul>
+<li>开发便捷的调试指令</li>
+<li>让流程信息可视化</li>
+<li>开发专属的调试工具</li>
+</ul>
+<h4 id="白盒测试"><a href="#白盒测试" class="headerlink" title="白盒测试"></a>白盒测试</h4><p>白盒测试则是基于对功能内部实现逻辑的了解，测试人员会根据代码结构设计测试用例，覆盖各种可能的执行路径，包括边界条件和异常情况。它能更深入地发现代码中的潜在问题，但需要测试人员具备一定的技术背景和对代码的熟悉程度。  </p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在团队实现功能的过程中，任务拆分的粒度要适中，既要便于工期预估和协作，又不能过于细碎导致沟通成本增加。在功能实现阶段，要遵循良好的编程原则和规范，注重代码的质量和可维护性。测试阶段要综合运用黑盒测试和白盒测试，全面验证功能的正确性和可靠性。<br>同时，团队成员之间要保持良好的沟通和协作，及时解决出现的问题，共同推动功能的顺利交付。  </p>
+<blockquote>
+<p>那，试着把球踢进去？</p>
+</blockquote>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+      
+
+    <span class="post-categories">
+      <i class="icon-categories"></i>
+        <a href="/categories/游戏开发/">游戏开发</a>
+    </span>
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/项目管理/">项目管理</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
     <h3 class="article-title"><a href="/2025/04/02/dify初探/"><span>dify初探</span></a></h3>
     
   
